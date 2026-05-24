@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Luyện Đề Nguyên Lý Kế Toán</title>
+    <style>
+        /* CSS Variables cho Light Mode */
+        :root {
+            --primary: #4a69bd;
+            --primary-hover: #3c559c;
+            --success: #27ae60;
+            --success-hover: #219a52;
+            --danger: #e74c3c;
+            --bg: #f5f6fa;
+            --card-bg: #ffffff;
+            --text-main: #2f3640;
+            --text-muted: #7f8fa6;
+            --border-color: #dcdde1;
+            --option-bg: #f1f2f6;
+            --option-hover: #eccc68;
+            --option-hover-text: #2f3542;
+            --selected-bg: #dff9fb;
+            --correct-bg: #d1f2eb;
+            --correct-text: #145a32;
+            --wrong-bg: #fadbd8;
+            --wrong-text: #78281f;
+            --explain-bg: #ecf0f1;
+            --explain-border: #f39c12;
+        }
+
+        /* CSS Variables cho Dark Mode */
+        [data-theme="dark"] {
+            --primary: #6a89cc;
+            --primary-hover: #82ccdd;
+            --success: #2ecc71;
+            --success-hover: #58d68d;
+            --danger: #ff7675;
+            --bg: #1e272e;
+            --card-bg: #2d3436;
+            --text-main: #dcdde1;
+            --text-muted: #a4b0be;
+            --border-color: #4b6584;
+            --option-bg: #353b48;
+            --option-hover: #f6b93b;
+            --option-hover-text: #2d3436;
+            --selected-bg: #0a3d62;
+            --correct-bg: #052c16;
+            --correct-text: #58d68d;
+            --wrong-bg: #4a1515;
+            --wrong-text: #ff7675;
+            --explain-bg: #353b48;
+            --explain-border: #f39c12;
+        }
+
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg); color: var(--text-main); margin: 0; padding: 20px; line-height: 1.6; transition: background-color 0.3s, color 0.3s; }
+        .app-header { max-width: 850px; margin: 0 auto 20px; display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 15px 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: 0.3s; }
+        
+        .header-controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        select { padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-size: 1em; font-weight: bold; outline: none; cursor: pointer; }
+        
+        .btn-icon { background: var(--option-bg); color: var(--text-main); border: 1px solid var(--border-color); padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; display: flex; align-items: center; gap: 8px; }
+        .btn-icon:hover { background: var(--primary); color: white; border-color: var(--primary); }
+
+        .quiz-container { max-width: 850px; margin: 0 auto; background: var(--card-bg); padding: 30px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); transition: 0.3s; }
+        h1 { text-align: center; color: var(--primary); margin-top: 0; margin-bottom: 5px; }
+        .subtitle { text-align: center; color: var(--text-muted); margin-bottom: 30px; font-size: 0.9em; }
+        
+        .question-block { margin-bottom: 35px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color); }
+        .question-block:last-child { border-bottom: none; }
+        .question { font-size: 1.15em; font-weight: 600; margin-bottom: 15px; }
+        .options { display: flex; flex-direction: column; gap: 10px; }
+        .option { padding: 12px 16px; background: var(--option-bg); border-radius: 8px; cursor: pointer; transition: all 0.2s; border: 2px solid transparent; }
+        .option:hover { background: var(--option-hover); color: var(--option-hover-text); }
+        .option.selected { background: var(--selected-bg); border-color: var(--primary); font-weight: 500; }
+        
+        .option.correct-ans { background: var(--correct-bg) !important; border-color: var(--success) !important; color: var(--correct-text) !important; font-weight: bold; }
+        .option.wrong-ans { background: var(--wrong-bg) !important; border-color: var(--danger) !important; color: var(--wrong-text) !important; text-decoration: line-through; }
+        
+        .controls { display: flex; gap: 15px; margin-top: 30px; }
+        .btn-main { flex: 1; padding: 16px; border: none; border-radius: 8px; font-size: 1.1em; font-weight: bold; cursor: pointer; transition: 0.3s; color: white; }
+        .btn-submit { background: var(--success); }
+        .btn-submit:hover { background: var(--success-hover); }
+        .btn-retry { background: var(--primary); display: none; }
+        .btn-retry:hover { background: var(--primary-hover); }
+        
+        .result-board { display: none; margin-top: 25px; padding: 25px; background: var(--option-bg); border-radius: 8px; border-left: 6px solid var(--primary); text-align: center; font-size: 1.2em; }
+        .score-text { font-size: 1.8em; font-weight: bold; color: var(--primary); margin: 10px 0; }
+        .explanation { font-size: 0.95em; color: var(--text-main); margin-top: 12px; padding: 12px; background: var(--explain-bg); border-radius: 6px; border-left: 4px solid var(--explain-border); line-height: 1.5; }
+    </style>
+</head>
+<body>
+
+<div class="app-header">
+    <div style="font-weight: bold; color: var(--primary); font-size: 1.2em;">📚 NLKT Quiz</div>
+    <div class="header-controls">
+        <select id="test-selector" onchange="changeTest()">
+            <option value="1">Đề số 1 (40 Câu)</option>
+            <option value="2">Đề số 2 (40 Câu)</option>
+        </select>
+        <button class="btn-icon" onclick="forceShuffle()">🔀 Đảo Đề</button>
+        <button class="btn-icon" id="theme-toggle" onclick="toggleTheme()">🌙 Chế độ Tối</button>
+    </div>
+</div>
+
+<div class="quiz-container">
+    <h1 id="quiz-title">Đề Luyện Tập Số 1</h1>
+    <div class="subtitle">Hãy đọc kỹ đề và chọn đáp án chính xác nhất nhé!</div>
+    
+    <div id="quiz-body"></div>
+    <div id="result-board" class="result-board"></div>
+    
+    <div class="controls">
+        <button class="btn-main btn-submit" id="btn-submit" onclick="submitQuiz()">Nộp Bài & Xem Điểm</button>
+        <button class="btn-main btn-retry" id="btn-retry" onclick="resetCurrentTest()">Làm Lại Đề Này</button>
+    </div>
+</div>
+
+<script>
+    // ================= DỮ LIỆU ĐỀ SỐ 1 =================
+    const de1_questions = [
+        { q: "Mua vật tư nhập kho £1,510 đã được ghi nợ tài khoản Vật Tư £1,150 và ghi có tài khoản Phải Trả Người Bán £1,150. Bút toán sửa sai là:", options: ["a. Nợ Phải Trả Người Bán 1,510 / Có Tiền 1,510", "b. Nợ Vật Tư 1,510 / Có Phải Trả Người Bán 1,510", "c. Nợ Phải Trả Người Bán 360 / Có Vật Tư 360", "d. Nợ Vật Tư 360 / Có Phải Trả Người Bán 360"], answer: 3, explain: "Ghi thiếu (1.510 - 1.150 = 360), cần lập bút toán bổ sung phần thiếu." },
+        { q: "Các bước sau là bắt buộc trong một chu trình kế toán, ngoại trừ:", options: ["a. Lập báo cáo tài chính", "b. Điều chỉnh", "c. Ghi bút toán nhật ký các giao dịch", "d. Sửa sai"], answer: 3, explain: "Sửa sai chỉ phát sinh khi có lỗi, không phải là bước bắt buộc định kỳ." },
+        { q: "Câu nào sau đây là đúng?", options: ["a. Nợ ngắn hạn là các khoản nợ chưa đến hạn ít nhất 18 tháng.", "b. Nợ ngắn hạn là những khoản nợ quá một năm.", "c. Nợ dài hạn là các khoản nợ chưa đến hạn ít nhất 12 tháng.", "d. Nợ dài hạn là những khoản nợ quá một năm."], answer: 3, explain: "Nợ dài hạn có thời hạn thanh toán dài hơn một năm hoặc một chu kỳ kinh doanh." },
+        { q: "Tài khoản nào sau đây không nằm trong bút toán khóa sổ?", options: ["a. Khấu Hao Luỹ Kế", "b. Doanh Thu Dịch Vụ", "c. Chi Phí Khấu Hao", "d. Cổ Tức"], answer: 0, explain: "Khấu hao lũy kế là tài khoản thường xuyên (thuộc Bảng CĐKT), không bị khóa sổ." },
+        { q: "Tài khoản nào sau đây không còn số dư sau khóa sổ?", options: ["a. Chi phí trả trước", "b. Doanh thu chưa thực hiện", "c. Doanh thu", "d. Khấu hao lũy kế"], answer: 2, explain: "Doanh thu là tài khoản tạm thời, số dư kết chuyển hết về 0." },
+        { q: "Khi lập báo cáo tài chính, lợi nhuận thuần từ BCKQHĐ được đem sang và có trong báo cáo nào?", options: ["a. Báo cáo tình hình tài chính", "b. Báo cáo tình hình tài chính và BC lưu chuyển tiền tệ", "c. Báo cáo lợi nhuận giữ lại", "d. Không có trong báo cáo nào ở trên"], answer: 2, explain: "Lợi nhuận thuần kết chuyển sang BC lợi nhuận giữ lại." },
+        { q: "Khoản mục nào là một giả định trong báo cáo tài chính?", options: ["a. Hoạt động liên tục", "b. Có thể so sánh", "c. Kịp thời", "d. Dễ hiểu"], answer: 0, explain: "Hoạt động liên tục (Going concern) là giả định kế toán cơ bản." },
+        { q: "Công thức nào sau đây không đúng?", options: ["a. Chi phí hoạt động - giá vốn hàng bán = lợi nhuận gộp", "b. Lợi nhuận gộp - Chi phí hoạt động = Lợi nhuận thuần", "c. Doanh thu bán hàng - giá vốn - CP HĐ = Lợi nhuận thuần", "d. Lợi nhuận thuần + chi phí hoạt động = lợi nhuận gộp"], answer: 0, explain: "Công thức A sai hoàn toàn. Công thức đúng: Lợi nhuận gộp = Doanh thu - Giá vốn hàng bán." },
+        { q: "Loại tài khoản nào xuất hiện trên bảng cân đối thử sau điều chỉnh:", options: ["a. Tài khoản thường xuyên", "b. Tài khoản tạm thời", "c. Cả tài khoản thường xuyên và tài khoản tạm thời", "d. Chỉ các tài khoản trên BCTHTC"], answer: 2, explain: "Vì chưa khóa sổ nên bảng CĐT sau điều chỉnh chứa cả TK tạm thời và thường xuyên." },
+        { q: "Báo cáo KQHĐ tháng 7 có Lợi nhuận thuần $4,000 (DT $8,700, CP lương $2,500, CP tiện ích $500). Nếu bỏ quên Chi phí bảo hiểm hết hạn $700, lợi nhuận thuần đúng là:", options: ["a. $5,400", "b. $4,700", "c. $4,000", "d. $3,300"], answer: 3, explain: "Lợi nhuận đúng = Lợi nhuận cũ (4,000) - Chi phí bỏ quên (700) = 3,300." },
+        { q: "Tài khoản nào xuất hiện trong sổ cái của công ty thương mại sử dụng hệ thống kê khai thường xuyên?", options: ["a. Giá vốn hàng bán", "b. Mua hàng", "c. Chi phí vận chuyển hàng mua", "d. Chiết khấu mua hàng"], answer: 0, explain: "Hệ thống KKTX luôn cập nhật Giá vốn hàng bán sau mỗi giao dịch xuất kho." },
+        { q: "Theo hệ thống kê khai thường xuyên, việc mua hàng hóa để bán lại được ghi nợ vào:", options: ["a. Tài khoản hàng hóa tồn kho", "b. Tài khoản mua hàng", "c. Tài khoản vật tư", "d. Tài khoản Giá vốn hàng bán"], answer: 0, explain: "Tài sản (Hàng tồn kho) tăng lên." },
+        { q: "Nếu không thực hiện bút toán điều chỉnh cho doanh thu dồn tích:", options: ["a. Tài sản sẽ được xác định cao hơn", "b. Chi phí sẽ được xác định thấp hơn", "c. Vốn chủ sở hữu sẽ được đánh giá thấp", "d. Doanh thu sẽ được xác định cao hơn"], answer: 2, explain: "Quên ghi nhận doanh thu dồn tích (Nợ Phải thu / Có Doanh thu) làm Tài sản thiếu và Doanh thu thiếu -> Vốn CSH bị đánh giá thấp." },
+        { q: "Thực hiện dịch vụ CPA trị giá $500 nhưng chưa lập hóa đơn vào cuối kỳ. Bút toán điều chỉnh là:", options: ["a. Nợ Phải thu/ Có Doanh thu chưa thực hiện", "b. Nợ Phải thu/ Có Doanh thu dịch vụ", "c. Nợ Tiền/ Có Doanh thu chưa thực hiện", "d. Nợ Doanh thu chưa thực hiện/ Có Doanh thu dịch vụ"], answer: 1, explain: "Dịch vụ đã hoàn thành nhưng chưa thu tiền -> Tăng Khoản phải thu và Tăng Doanh thu." },
+        { q: "Điều chỉnh đối với doanh thu chưa thực hiện:", options: ["a. Làm giảm tài sản và giảm doanh thu.", "b. Làm tăng doanh thu và tăng chi phí.", "c. Làm tăng tài sản và tăng doanh thu.", "d. Làm giảm nợ phải trả và tăng doanh thu."], answer: 3, explain: "Khi hoàn thành một phần dịch vụ, Nợ phải trả (DT chưa thực hiện) giảm đi và Doanh thu tăng lên." },
+        { q: "Nhận tiền từ KH $300.000, Doanh thu thực hiện $350.000, CP phát sinh $200.000, Khấu hao $16.000. Theo cơ sở dồn tích, lợi nhuận thuần là:", options: ["a. $82.000", "b. $114.000", "c. $150.000", "d. $134.000"], answer: 3, explain: "Lợi nhuận = DT thực hiện (350.000) - CP phát sinh (200.000) - Khấu hao (16.000) = 134.000." },
+        { q: "Trong hệ thống kê khai thường xuyên, tài khoản Giá vốn hàng bán được sử dụng:", options: ["a. Chỉ khi bán hàng hóa xảy ra", "b. Chỉ khi bán hàng hóa chưa thu tiền", "c. Chỉ khi giao dịch bán thu tiền xảy ra", "d. Bất cứ khi nào có bán hàng hóa hoặc hàng bán bị trả lại"], answer: 3, explain: "Giá vốn được ghi nhận với mọi biến động xuất hàng bán hoặc nhập hàng bị trả." },
+        { q: "Doanh thu bán hàng thường được ghi nhận khi:", options: ["a. Tiền được nhận từ việc bán chịu", "b. Các bút toán điều chỉnh được thực hiện", "c. Hàng hóa đã được chuyển giao từ người bán sang người mua", "d. Nhận được một đơn đặt hàng"], answer: 2, explain: "Nguyên tắc ghi nhận doanh thu: khi rủi ro và lợi ích đã được chuyển giao." },
+        { q: "Làm thêm giờ 28/2. Đầu tháng 3 gửi thông báo nợ. Giữa tháng 3 nhận lương. Tiền lương ghi nhận vào chi phí trong:", options: ["a. Tháng 3", "b. Thời kỳ nhận séc", "c. Tháng 2", "d. Tùy thuộc vào thanh toán"], answer: 2, explain: "Nguyên tắc phù hợp (Matching principle): Chi phí phát sinh tạo ra doanh thu kỳ nào thì ghi nhận kỳ đó." },
+        { q: "Khi hàng hóa được trả lại liên quan đến việc bán hàng thu tiền trước đó:", options: ["a. Không nên sử dụng tài khoản hàng bán bị trả lại", "b. Tài khoản tiền sẽ được ghi có", "c. Tài khoản hàng bán bị trả lại sẽ được ghi nợ", "d. Tài khoản phải thu sẽ được ghi có"], answer: 2, explain: "Hàng bán bị trả lại là TK điều chỉnh giảm doanh thu, phát sinh tăng ghi bên Nợ." },
+        { q: "Trong hệ thống kê khai thường xuyên, người mua trả lại hàng hóa bị lỗi ghi bằng cách ghi có:", options: ["a. Giảm giá hàng mua", "b. Hàng mua trả lại", "c. Hàng hóa tồn kho", "d. Mua hàng"], answer: 2, explain: "Người mua xuất trả lại hàng sẽ làm giảm trực tiếp tài sản Hàng hóa tồn kho." },
+        { q: "Bảng cân đối thử chưa điều chỉnh:", options: ["a. Chỉ có những TK thường xuyên", "b. Chỉ có những TK tạm thời", "c. Có thể có các TK thường xuyên và tạm thời", "d. Thể hiện cân bằng DT - CP = LN"], answer: 2, explain: "Trước khi điều chỉnh và khóa sổ, bảng CĐT chứa tất cả các TK hiện có." },
+        { q: "Doanh thu $60.000. Giá vốn $30.000, CP hoạt động $12.000, lỗ bán thiết bị $2.000. Lợi nhuận gộp là:", options: ["a. $30.000", "b. $18.000", "c. $60.000", "d. $16.000"], answer: 0, explain: "Lợi nhuận gộp = Doanh thu - Giá vốn hàng bán = 60.000 - 30.000 = 30.000." },
+        { q: "Phần chi phí hoạt động trong báo cáo kết quả hoạt động sẽ không bao gồm:", options: ["a. Giá vốn hàng bán", "b. Chi phí bảo hiểm", "c. Chi phí tiện ích", "d. Chi phí vận chuyển"], answer: 0, explain: "Giá vốn hàng bán là chỉ tiêu tách biệt, được trừ đi đầu tiên để tính LN gộp." },
+        { q: "Bước cuối cùng trong quy trình ghi chép là:", options: ["a. Lập bảng cân đối thử", "b. Phân tích giao dịch", "c. Ghi nhật ký", "d. Chuyển sổ cái"], answer: 0, explain: "Sau khi phân tích, ghi nhật ký, chuyển sổ, ta lập bảng CĐT để kiểm tra cơ học." },
+        { q: "Quy trình chuyển sổ diễn ra đúng thứ tự:", options: ["a. Sổ tài khoản -> Phân tích -> Nhật ký", "b. Nhật ký -> Phân tích -> Sổ tài khoản", "c. Nhật ký -> Sổ tài khoản -> Phân tích", "d. Phân tích -> Nhật ký -> Sổ tài khoản"], answer: 3, explain: "Bước 1: Phân tích; Bước 2: Ghi Nhật ký; Bước 3: Chuyển Sổ tài khoản (Sổ cái)." },
+        { q: "Trả $300 tiền thuê nhà cho tháng 3 (trả trước), ghi bút toán:", options: ["a. Nợ Chi Phí Trả Trước 300 / Có Tiền 300", "b. Nợ Chi Phí Thuê 300/ Có Tiền 300", "c. Nợ Chi Phí Thuê / Có Phải Trả 300", "d. Nợ Tiền Thuê Phải Trả / Có Doanh Thu"], answer: 0, explain: "Trả trước tiền thuê cho tương lai được xem là Tài sản (Chi phí trả trước)." },
+        { q: "Hàng mua đang đi đường (FOB điểm đi):", options: ["a. Chưa nhận nên không thuộc tồn kho", "b. Không thuộc tồn kho", "c. Thiếu chứng từ nên không thuộc", "d. Thuộc hàng tồn kho"], answer: 3, explain: "FOB shipping point: hàng đã giao cho đơn vị vận chuyển là đã thuộc sở hữu bên mua." },
+        { q: "Tài khoản Nợ phải trả (Liability accounts) là:", options: ["a. Lời hứa miệng...", "b. Quyền lợi của DN...", "c. Nghĩa vụ phải thực hiện cho chủ nợ đối với tài sản...", "d. Tiền đã ứng trước cho người bán."], answer: 2, explain: "Nợ phải trả là nghĩa vụ hiện tại của DN phải thanh toán bằng nguồn lực của mình." },
+        { q: "Phương pháp nhập trước xuất trước – FIFO:", options: ["a. Giả định lô mua đầu thì tồn kho cuối kỳ", "b. Giả định lô mua đầu xuất bán sau cùng", "c. Giả định lô mua sau cùng xuất trước", "d. Giả định lô mua đầu tiên được xuất bán trước hết"], answer: 3, explain: "First-In, First-Out: Hàng vào kho trước sẽ được ưu tiên xuất kho trước." },
+        { q: "Tồn 10 cái giá 100; Nhập 50 cái giá 110; Cuối kỳ còn 20 cái. Giá trị hàng xuất theo FIFO:", options: ["a. 3.000", "b. 4.500", "c. 6.280", "d. 4.300"], answer: 3, explain: "Tổng 60 cái, tồn 20 -> Xuất 40. Xuất 10 cái cũ (10x100) + 30 cái mới (30x110) = 4.300." },
+        { q: "Báo cáo kết quả hoạt động (Income Statement):", options: ["a. Các TK trên báo cáo này là thường xuyên", "b. Thể hiện tính cân bằng phương trình KT", "c. Là báo cáo tại một thời điểm nhất định", "d. Báo cáo tình hình doanh thu, thu nhập, chi phí trong MỘT KỲ kế toán"], answer: 3, explain: "BCKQHĐ đo lường hiệu quả hoạt động trong một khoảng thời gian (kỳ)." },
+        { q: "Tồn kho cuối kỳ bị ghi cao hơn 3,000 thì sẽ làm cho:", options: ["a. Giá vốn hàng bán bị ghi cao hơn 3,000", "b. Chi phí hoạt động bị thấp hơn 3,000", "c. Lợi nhuận thuần bị ghi thấp hơn 3,000", "d. Lợi nhuận thuần bị ghi cao hơn 3,000"], answer: 3, explain: "Tồn kho cuối kỳ CAO -> Giá vốn THẤP -> Lợi nhuận CAO." },
+        { q: "Đặc điểm của Báo cáo kết quả hoạt động:", options: ["a. Là báo cáo về doanh thu, thu nhập và chi phí phát sinh TRONG MỘT KỲ kế toán.", "b. Là báo cáo tại một thời điểm nhất định.", "c. Gồm các TK thường xuyên.", "d. Thể hiện cân bằng PTKT."], answer: 0, explain: "Phản ánh luồng dữ liệu mang tính thời kỳ." },
+        { q: "Phát sinh chi phí quảng cáo nhưng chưa trả tiền ảnh hưởng PTKT thế nào?", options: ["a. Nợ phải trả tăng, vốn chủ sở hữu giảm", "b. Tài sản tăng, vốn chủ sở hữu tăng", "c. Tài sản tăng, nợ phải trả tăng", "d. Tài sản giảm, vốn chủ sở hữu giảm"], answer: 0, explain: "Chưa trả tiền -> Tăng Nợ phải trả. Phát sinh chi phí -> Giảm Lợi nhuận (Giảm Vốn CSH)." },
+        { q: "Lô hàng A giá gốc 100, giá bán dự kiến 80, chi phí vận chuyển & bán 5. Giá trị thuần có thể thực hiện (NRV) là:", options: ["a. 80", "b. 105", "c. 15", "d. 75"], answer: 3, explain: "NRV = Giá bán dự kiến (80) - Chi phí ước tính hoàn thành và bán (5) = 75." },
+        { q: "Tổng nợ phải trả tăng $30.000 và Vốn CSH tăng $10.000, tổng tài sản sẽ:", options: ["a. Tăng $40.000", "b. Giảm $20.000", "c. Tăng $20.000", "d. Giảm $40.000"], answer: 0, explain: "Tài sản = Nợ phải trả + Vốn CSH = (+30k) + (+10k) = Tăng 40.000." },
+        { q: "“Chỉ ghi chép các giao dịch có thể thể hiện bằng tiền” là nguyên tắc/giả định nào?", options: ["a. Nguyên tắc giá gốc", "b. Nguyên tắc ghi nhận doanh thu", "c. Giả định đơn vị kinh tế", "d. Giả định đơn vị tiền tệ"], answer: 3, explain: "Giả định đơn vị tiền tệ (Monetary Unit) quy định chỉ ghi nhận những gì lượng hóa được bằng tiền." },
+        { q: "Tồn 10 cái (100); Nhập 50 cái (110); Xuất 40 cái, Tồn 20 cái. Tính tồn kho cuối kỳ theo FIFO:", options: ["a. (10*100)+(50*110)-[(10*100)+(30*110)]", "b. 20 * 110 = 2.200", "c. 50*110 - 30*110 = 2.200", "d. (10*100)+(40*110)-[(10*100)+(30*110)]"], answer: 1, explain: "Theo FIFO, xuất hàng cũ trước. 20 cái tồn lại cuối kỳ hoàn toàn là hàng nhập sau cùng giá 110." },
+        { q: "Quy trình kế toán được sắp xếp thứ tự đúng như sau:", options: ["a. Ghi chép, Xác định, Cung cấp thông tin", "b. Cung cấp thông tin, Ghi chép, Xác định", "c. Xác định, Ghi chép, Cung cấp thông tin", "d. Xác định, Cung cấp thông tin, Ghi chép"], answer: 2, explain: "Xác định (Identify) -> Ghi chép (Record) -> Cung cấp thông tin báo cáo (Communicate)." }
+    ];
+
+    // ================= DỮ LIỆU ĐỀ SỐ 2 (Đã fix lỗi lặp chữ "Câu") =================
+    const de2_questions = [
+        { q: "Sự “trình bày trung thực” có nghĩa là:", options: ["A. Có thể bỏ qua một vài thông tin trọng yếu", "B. Tuyệt đối không được có bất cứ sai sót nào dù là rất nhỏ đi chăng nữa", "C. Đầy đủ các thông tin trọng yếu và tuân thủ đầy đủ các chuẩn mực liên quan", "D. Mô tả không cần chính xác và có thể thiên vị"], answer: 2, explain: "Trình bày trung thực (Faithful representation) yêu cầu thông tin phải đầy đủ, khách quan và không có sai sót trọng yếu." },
+        { q: "Đầu tháng 9, tồn kho $4,000. Mua hàng $7,800. Ngày 31 tháng 9, tồn kho $3,200. Giá vốn hàng bán là:", options: ["A. $8,600", "B. $7,800", "C. $600", "D. $11,800"], answer: 0, explain: "Giá vốn = Tồn đầu (4000) + Nhập trong kỳ (7800) - Tồn cuối (3200) = 8,600." },
+        { q: "Bán thu tiền ngay 90,000, bán chịu 210,000. Giảm giá và hàng bán trả lại 7,500, chiết khấu thương mại 2,000. Doanh thu thuần là:", options: ["A. 330,700", "B. 290,500", "C. 292,500", "D. 300,000"], answer: 1, explain: "Doanh thu tổng = 90k + 210k = 300k. Các khoản giảm trừ = 7,500 + 2,000. DT Thuần = 300k - 7.5k - 2k = 290,500." },
+        { q: "Các bút toán điều chỉnh cuối kỳ có thể được chia thành hai nhóm:", options: ["A. Hoãn lại và ứng trước", "B. Dồn tích và phân bổ (Accruals & Deferrals)", "C. Trả trước và hoãn lại", "D. Dồn tích và ứng trước"], answer: 1, explain: "Hai nhóm chính của bút toán điều chỉnh là Accruals (Dồn tích - Ghi nhận chưa thu/chi tiền) và Deferrals (Phân bổ/Hoãn lại - Đã thu/chi tiền nhưng chưa ghi nhận DT/CP)." },
+        { q: "Nhân viên thiết kế làm thêm giờ 28/2. Đầu tháng 3 gửi thông báo nợ, giữa tháng 3 nhận tiền. Tiền lương ghi nhận vào chi phí trong:", options: ["A. Thời kỳ mà người lao động nhận được tiền", "B. Tháng 2", "C. Tháng 3", "D. Tùy thuộc vào thời điểm thanh toán"], answer: 1, explain: "Nguyên tắc phù hợp (Matching Principle): Chi phí phát sinh tạo ra doanh thu ở tháng 2 thì ghi nhận vào tháng 2." },
+        { q: "Đã thực hiện dịch vụ 500$ nhưng chưa thu tiền, chưa xuất hoá đơn, chưa ghi sổ. Kế toán cần lập bút toán điều chỉnh:", options: ["A. Ghi nợ Phải thu khách hàng và ghi có Doanh thu chưa thực hiện", "B. Chưa xuất hóa đơn nên không ghi gì", "C. Ghi nợ Phải thu khách hàng và ghi có Doanh thu dịch vụ", "D. Ghi nợ Doanh thu chưa thực hiện và ghi có Doanh thu dịch vụ"], answer: 2, explain: "Dịch vụ đã hoàn thành thì được ghi nhận doanh thu dồn tích (Nợ Khoản phải thu / Có Doanh thu)." },
+        { q: "Tài khoản chi phí trả trước là các nội dung sau, NGOẠI TRỪ:", options: ["A. Gồm bảo hiểm, thuê, dịch vụ trả trước", "B. Là tài sản đại diện cho chi phí trong tương lai", "C. Khi chi phí phát sinh nhưng tiền chưa chi, phải điều chỉnh tính vào chi phí", "D. Số tiền trên TK trả trước được chuyển sang chi phí bằng bút toán điều chỉnh"], answer: 2, explain: "Ý C là mô tả của 'Chi phí phải trả' (Accrued expenses), không phải 'Chi phí trả trước' (Prepaid expenses)." },
+        { q: "Nếu bên mua sử dụng hệ thống KKTX đồng ý điều khoản vận chuyển FOB điểm đi (Shipping point), thì:", options: ["A. Hãng vận tải sẽ chịu chi phí vận chuyển", "B. Bên bán sẽ chịu chi phí vận chuyển", "C. Tài khoản hàng hóa tồn kho sẽ không bị ảnh hưởng", "D. Tài khoản hàng hóa tồn kho sẽ được tăng lên"], answer: 3, explain: "FOB Shipping point: Người mua chịu phí vận chuyển. Phí này được cộng thẳng vào giá gốc của Hàng hóa tồn kho." },
+        { q: "Tài khoản nào sau đây không sử dụng trong công ty dịch vụ?", options: ["A. Doanh thu chưa thực hiện", "B. Chi phí hoạt động", "C. Giá vốn hàng bán", "D. Doanh thu dịch vụ"], answer: 2, explain: "Công ty dịch vụ bán chất xám/nhân công, không có sản phẩm vật lý nên không có tài khoản Giá vốn hàng bán (COGS)." },
+        { q: "Tiền công phải trả 350 cuối T10 và 280 cuối T11. Chi phí tiền công T11 là 1,800. Tiền chi trả trong T11 là:", options: ["A. 2,430", "B. 1,870", "C. 1,730", "D. 1,170"], answer: 1, explain: "Dư đầu (350) + CP phát sinh (1800) - Tiền đã chi (X) = Dư cuối (280) => X = 350 + 1800 - 280 = 1,870." },
+        { q: "Nhận 150 triệu KH ứng trước năm 2020 để làm dịch vụ năm 2021. Nguyên tắc nào yêu cầu ghi nhận DT vào năm 2021?", options: ["A. Giả định hoạt động liên tục", "B. Nguyên tắc giá gốc", "C. Giả định đơn vị kinh doanh", "D. Cơ sở dồn tích và nguyên tắc ghi nhận doanh thu"], answer: 3, explain: "Nguyên tắc ghi nhận doanh thu quy định DT chỉ được ghi nhận khi dịch vụ thực sự đã được thực hiện (năm 2021)." },
+        { q: "Nếu Lợi nhuận sau thuế là 84, thuế suất 30%, tổng chi phí 252, thì tổng doanh thu là:", options: ["A. 372", "B. 400", "C. 120", "D. 156"], answer: 0, explain: "LN trước thuế = LN sau thuế / (1 - 0.3) = 84 / 0.7 = 120. Doanh thu = LNTT + Chi phí = 120 + 252 = 372." },
+        { q: "Bảng CĐT cuối kỳ có tổng số dư Nợ lớn hơn tổng số dư Có là 700. Lỗi nào dẫn đến chênh lệch này?", options: ["A. Khoản làm tăng Doanh thu 350 lại ghi vào bên Nợ TK Doanh thu 350", "B. Số dư tài khoản Rút vốn lại ghi vào bên cột Có", "C. Ghi trùng 2 lần cho một bút toán", "D. Ghi nhầm 700 vào bên Nợ TK Tiền thay vì bên Nợ TK Phải thu"], answer: 0, explain: "Doanh thu đúng ra ghi Có 350, lại ghi Nợ 350 -> Cột Nợ bị dư 350, Cột Có bị thiếu 350 -> Chênh lệch Nợ và Có = 350 + 350 = 700." },
+        { q: "Trước khi thực hiện bút toán điều chỉnh cho khoản mục chi phí trả trước:", options: ["A. Tài sản và lợi nhuận bị phản ánh cao", "B. Tài sản bị phản ánh thấp còn lợi nhuận bị phản ánh cao", "C. Tài sản và chi phí bị phản ánh thấp", "D. Tài sản và lợi nhuận bị phản ánh thấp"], answer: 0, explain: "Chưa phân bổ CP trả trước -> Tài sản không giảm (cao) và Chi phí không tăng -> Lợi nhuận cao." },
+        { q: "Báo cáo KQHĐ Lợi nhuận thuần $4,000. Phát hiện bỏ qua Chi phí bảo hiểm hết hạn $700. LN thuần sau điều chỉnh là:", options: ["A. $4,700", "B. $3,300", "C. $4,000", "D. $5,400"], answer: 1, explain: "Lợi nhuận đúng = Lợi nhuận ban đầu (4,000) - Chi phí bổ sung (700) = 3,300." },
+        { q: "Đi thuê một văn phòng, sẽ KHÔNG ghi vào tài khoản nào:", options: ["A. Chi phí thuê", "B. Tiền thuê trả trước", "C. Doanh thu tiền thuê chưa được hưởng", "D. Tiền thuê phải trả"], answer: 2, explain: "Mình là người đi thuê (trả tiền), không phải người cho thuê nên không có 'Doanh thu tiền thuê'." },
+        { q: "Doanh thu dịch vụ chưa thực hiện phát sinh từ việc:", options: ["A. Đã thực hiện và đã ghi nhận như nợ phải trả trước khi nhận tiền", "B. Đã phát sinh và đã nhận tiền, đã ghi nhận", "C. Đã thực hiện nhưng vẫn chưa nhận được tiền, chưa ghi nhận", "D. Đã nhận tiền và ghi nhận như một khoản nợ phải trả trước khi hoàn tất dịch vụ"], answer: 3, explain: "Khách hàng ứng trước tiền nhưng DN chưa cung cấp dịch vụ -> Nợ phải trả (DT chưa thực hiện)." },
+        { q: "Chi phí vận chuyển hàng tồn kho:", options: ["A. Khi bán hàng tồn kho, tính vào giá hàng tồn kho", "B. Chi phí vận chuyển hàng mua tính vào chi phí hoạt động", "C. Chi phí bán và mua hàng đều là khoản giảm trừ doanh thu", "D. Khi bán hàng tồn kho, chi phí vận chuyển là chi phí hoạt động"], answer: 3, explain: "Khi MUA: CPVC tính vào Giá gốc Hàng tồn kho. Khi BÁN: CPVC tính vào Chi phí bán hàng (Chi phí hoạt động)." },
+        { q: "Vật tư tồn đầu kỳ $100, nhập trong kỳ $50, tồn cuối kỳ $30. Bút toán điều chỉnh vật tư sẽ là:", options: ["A. Nợ Chi phí vật tư 50 / Có Vật tư 50", "B. Nợ Chi phí vật tư 120 / Có Vật tư 120", "C. Nợ Vật tư 30 / Có Chi phí Vật tư 30", "D. Không cần điều chỉnh"], answer: 1, explain: "Chi phí vật tư tiêu hao = 100 + 50 - 30 = 120. Bút toán ghi nhận chi phí và giảm tài sản vật tư." },
+        { q: "Tồn kho Đầu kỳ + Nhập trong kỳ - Tồn kho Cuối kỳ = Giá vốn. Do vậy, tồn kho đầu kỳ bị ghi thấp thì sẽ làm cho:", options: ["A. Số nhập trong kỳ bị ghi thấp hơn", "B. Lợi nhuận bị ghi thấp hơn", "C. Giá vốn hàng bán trong kỳ bị ghi thấp hơn", "D. Số nhập trong kỳ bị ghi cao hơn"], answer: 2, explain: "Tồn đầu kỳ THẤP -> Giá vốn hàng bán THẤP -> Lợi nhuận CAO. (Chọn C vì phản ánh đúng nhất logic công thức tính Giá vốn)." },
+        { q: "Nhập kho lô hàng mua $200,000, trả 50%. CP vận chuyển người mua chịu $10,000. Chiết khấu thương mại 2%. Giá gốc là:", options: ["A. 98,000", "B. 206,000", "C. 196,000", "D. 205,800"], answer: 1, explain: "Giá sau CK = 200k * 98% = 196k. Cộng chi phí vận chuyển 10k = 206k." },
+        { q: "Bước cuối cùng trong chu trình kế toán là:", options: ["A. Ghi bút toán khóa sổ", "B. Lập báo cáo tài chính", "C. Lập bảng cân đối thử sau khóa sổ", "D. Điều chỉnh"], answer: 2, explain: "Sau khi khóa sổ các TK tạm thời, bước chốt cuối cùng là lập Bảng cân đối thử sau khóa sổ để kiểm tra các TK thường xuyên." },
+        { q: "Quá trình xác định lợi nhuận cần xem xét các nội dung sau, NGOẠI TRỪ:", options: ["A. Vấn đề hoạt động liên tục", "B. Nguyên tắc phù hợp", "C. Vấn đề ghi nhận", "D. Vấn đề kỳ kế toán"], answer: 0, explain: "Xác định LN dựa trên: Kỳ kế toán, Ghi nhận DT, Phù hợp CP. Hoạt động liên tục là giả định chung cho BCTC, không trực tiếp xác định LN." },
+        { q: "Bảng cân đối thử sau khóa sổ liệt kê số dư của các tài khoản:", options: ["A. Doanh thu bảo hiểm chưa thực hiện", "B. Xác định kết quả kinh doanh", "C. Doanh thu bảo hiểm", "D. Chi phí bảo hiểm"], answer: 0, explain: "Bảng này chỉ chứa TK Thường xuyên (Tài sản, NPT, VCSH). A là Nợ phải trả. B, C, D là TK tạm thời đã bị khóa sổ về 0." },
+        { q: "Tài khoản chi phí trả trước là các nội dung sau, NGOẠI TRỪ:", options: ["A. Khi chi phí phát sinh nhưng tiền chưa chi, phải điều chỉnh tính vào chi phí", "B. Gồm bảo hiểm trả trước, thuê, dịch vụ trả trước", "C. Là tài sản đại diện cho chi phí trong tương lai", "D. Số tiền chuyển sang CP bằng bút toán điều chỉnh cuối kỳ"], answer: 0, explain: "Ý A định nghĩa khoản Chi phí phải trả (Accrued expenses), không phải Chi phí trả trước." },
+        { q: "Bước cuối cùng trong chu trình kế toán là:", options: ["A. Ghi bút toán khóa sổ", "B. Lập bảng cân đối thử sau khóa sổ", "C. Điều chỉnh", "D. Lập báo cáo tài chính"], answer: 1, explain: "Bước cuối cùng là Bảng cân đối thử sau khóa sổ (Post-closing trial balance)." },
+        { q: "Nếu không thực hiện bút toán điều chỉnh cho doanh thu dồn tích:", options: ["A. Lợi nhuận thuần được xác định cao hơn", "B. Chi phí được xác định cao hơn", "C. Nợ phải trả xác định thấp hơn", "D. Lợi nhuận thuần được xác định thấp hơn"], answer: 3, explain: "Bỏ sót DT dồn tích -> Doanh thu bị ghi thiếu -> Lợi nhuận thuần bị tính thiếu (thấp hơn)." },
+        { q: "Ghi nhận DT được hưởng nhưng chưa thu tiền, giao dịch này sẽ ảnh hưởng đến:", options: ["A. Chỉ có BC tình hình tài chính", "B. Chỉ có BC kết quả hoạt động", "C. BC kết quả hoạt động và BC tình hình tài chính", "D. BC KQHĐ, BC lợi nhuận giữ lại và BC tình hình tài chính"], answer: 3, explain: "Tăng Phải thu (BC THTC), Tăng DT (BC KQHĐ). LN tăng làm tăng LN giữ lại (BC LNGL và BC THTC)." },
+        { q: "Bỏ sót bút toán điều chỉnh khoản chi phí dồn tích cuối kỳ sẽ làm cho:", options: ["A. Thu nhập thuần bị phản ánh thấp", "B. Cả chi phí và nợ phải trả bị phản ánh thấp", "C. Cả chi phí và nợ phải trả bị phản ánh cao", "D. Cả tài sản và nợ phải trả bị phản ánh cao"], answer: 1, explain: "Quên ghi Nợ Chi phí / Có Nợ phải trả -> Cả Chi phí và Nợ phải trả đều bị ghi thiếu (thấp)." },
+        { q: "Bảng cân đối thử chưa điều chỉnh là một bảng kê:", options: ["A. Thể hiện cân bằng DT - CP = LN", "B. Chỉ có những TK thường xuyên", "C. Chỉ có những TK tạm thời", "D. Các tài khoản trong sổ tài khoản và số dư của chúng"], answer: 3, explain: "Trial balance đơn giản là bảng liệt kê tất cả các tài khoản sổ cái và số dư Nợ/Có của chúng tại một thời điểm." },
+        { q: "Công việc nào dưới đây KHÔNG thuộc hoạt động trong chu trình kế toán?", options: ["A. Phân tích và giải thích thông tin", "B. Mua hàng hóa cho công ty", "C. Lập báo cáo kế toán", "D. Phân loại sự kiện kinh tế"], answer: 1, explain: "Mua hàng hóa là hoạt động kinh doanh (kinh tế) của doanh nghiệp, không phải một bước trong quy trình xử lý kế toán." },
+        { q: "Mua hàng hoá nhập kho 2500 cái, giá đơn vị 8.5/cái, điều khoản n/30. HT KKTX. Bút toán:", options: ["A. Nợ Hàng Tồn Kho / Có Tiền 21,250", "B. Nợ Mua Hàng / Có Phải Trả 21,250", "C. Nợ Phải Trả Người Bán / Có Hàng Tồn Kho 21,250", "D. Nợ Hàng Tồn Kho / Có Phải Trả Người Bán 21,250"], answer: 3, explain: "Mua n/30 (mua chịu) -> Có Phải trả. HT KKTX -> Nợ Hàng tồn kho. Giá = 2500 * 8.5 = 21,250." },
+        { q: "Theo hệ thống KKTX, việc mua thiết bị về để BÁN LẠI được ghi nợ vào:", options: ["A. Tài khoản Hàng Hóa", "B. Tài khoản Thiết Bị", "C. Tài khoản Vật Tư", "D. Tài khoản Mua Hàng"], answer: 0, explain: "Tài sản mua về với mục đích bán lại thì được phân loại là Hàng hóa (Inventory)." },
+        { q: "Theo hệ thống KKTX, việc mua thiết bị về để bán lại được ghi nợ vào:", options: ["A. Tài khoản Vật Tư", "B. Tài khoản Mua Hàng", "C. Tài khoản Thiết Bị", "D. Tài khoản Hàng Hóa"], answer: 3, explain: "Trùng câu trên. Ghi nợ vào TK Hàng hóa." },
+        { q: "Nhân viên làm thêm giờ cuối T2. Đầu T3 thông báo, giữa T3 thanh toán. Tiền lương ghi nhận vào chi phí trong:", options: ["A. Tháng 2", "B. Thời kỳ nhận tiền", "C. Tháng 3", "D. Tùy thuộc thời điểm thanh toán"], answer: 0, explain: "Theo nguyên tắc phù hợp, chi phí phát sinh T2 phải ghi nhận T2." },
+        { q: "Trích khấu hao thiết bị KD trong kỳ (nguyên giá 1,000,000, thời gian 10 kỳ):", options: ["A. Nợ Khấu hao luỹ kế / Có CP khấu hao 1,000,000", "B. Nợ CP khấu hao / Có Khấu hao luỹ kế 100,000", "C. Nợ CP khấu hao / Có Khấu hao luỹ kế 1,000,000", "D. Nợ Thiết bị / Có Khấu hao luỹ kế 1,000,000"], answer: 1, explain: "Khấu hao 1 kỳ = 1.000.000 / 10 = 100.000. Ghi Nợ CP Khấu hao / Có KHLK." },
+        { q: "Bút toán điều chỉnh cuối kỳ KHÔNG áp dụng cho trường hợp nào?", options: ["A. Có khoản chi phí dồn tích", "B. Có khoản chi phí trả trước cần phân bổ", "C. Có sai sót cần chỉnh sửa", "D. Có khoản doanh thu dồn tích"], answer: 2, explain: "Chỉnh sửa sai sót là bút toán sửa sai (correcting entry), không phải bút toán điều chỉnh định kỳ (adjusting entry)." },
+        { q: "Nếu không thực hiện bút toán điều chỉnh cho doanh thu dồn tích:", options: ["A. Lợi nhuận thuần được xác định cao hơn", "B. Nợ phải trả xác định thấp hơn", "C. Lợi nhuận thuần được xác định thấp hơn", "D. Chi phí được xác định cao hơn"], answer: 2, explain: "Bỏ sót DT -> DT thấp -> Lợi nhuận thuần bị thấp." },
+        { q: "Số dư thông thường TK Phải thu KH là $2,000 (bên Nợ), khi lên bảng CĐT lại ghi vào cột Có $2,000:", options: ["A. Tổng cộng hai bên đều bị thiếu $2,000", "B. Làm bảng cân đối thử bị chênh lệch $4,000", "C. Tổng cộng hai bên đều bị thừa $2,000", "D. Làm bảng cân đối thử bị chênh lệch $2,000"], answer: 1, explain: "Bên Nợ mất đi 2000, bên Có tự dưng tăng thêm 2000 => Khoảng cách (chênh lệch) giữa Nợ và Có bị doãng ra thành 4,000." },
+        { q: "Ghi bút toán điều chỉnh là:", options: ["A. Từ nguyên tắc ghi nhận doanh thu và nguyên tắc phù hợp liên quan đến 2 hay nhiều kỳ", "B. Chuẩn bị tài khoản tập hợp doanh thu, CP cho kỳ sau", "C. Điều chỉnh tài khoản lãi lỗ trong kỳ", "D. Điều chỉnh hằng ngày số dư tài khoản tài sản..."], answer: 0, explain: "Mục đích cốt lõi của điều chỉnh là để đáp ứng nguyên tắc Cơ sở dồn tích (ghi nhận DT và nguyên tắc phù hợp CP) khi giao dịch vắt ngang qua nhiều kỳ." }
+    ];
+
+    // ================= APP LOGIC =================
+    let currentQuestions = [];
+    let userAnswers = [];
+    let currentTestNum = 1;
+
+    // Khởi tạo Quiz khi mở web
+    function initApp() {
+        document.body.setAttribute('data-theme', 'light');
+        changeTest(); 
+    }
+
+    // Xử lý đổi đề
+    function changeTest() {
+        const selector = document.getElementById('test-selector');
+        currentTestNum = parseInt(selector.value);
+        
+        document.getElementById('quiz-title').innerText = `Đề Luyện Tập Số ${currentTestNum}`;
+        
+        const sourceData = currentTestNum === 1 ? de1_questions : de2_questions;
+        currentQuestions = JSON.parse(JSON.stringify(sourceData));
+        resetQuizState();
+    }
+
+    // Reset lại trạng thái để làm từ đầu
+    function resetQuizState() {
+        userAnswers = new Array(currentQuestions.length).fill(null);
+        renderQuiz();
+        document.getElementById('result-board').style.display = "none";
+        document.getElementById('btn-submit').style.display = "block";
+        document.getElementById('btn-retry').style.display = "none";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Nút "Làm lại đề này"
+    function resetCurrentTest() {
+        userAnswers = new Array(currentQuestions.length).fill(null);
+        renderQuiz();
+        document.getElementById('result-board').style.display = "none";
+        document.getElementById('btn-submit').style.display = "block";
+        document.getElementById('btn-retry').style.display = "none";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Đảo đề (Shuffle)
+    function forceShuffle() {
+        for (let i = currentQuestions.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [currentQuestions[i], currentQuestions[j]] = [currentQuestions[j], currentQuestions[i]];
+        }
+        resetQuizState();
+        alert("Đã xáo trộn thứ tự các câu hỏi! Bắt đầu làm lại nhé.");
+    }
+
+    // Render HTML các câu hỏi
+    function renderQuiz() {
+        const quizBody = document.getElementById('quiz-body');
+        quizBody.innerHTML = '';
+
+        currentQuestions.forEach((question, qIndex) => {
+            let optionsHtml = '';
+            question.options.forEach((option, oIndex) => {
+                optionsHtml += `<div class="option" id="opt-${qIndex}-${oIndex}" onclick="selectOption(${qIndex}, ${oIndex})">${option}</div>`;
+            });
+            quizBody.innerHTML += `
+                <div class="question-block" id="question-${qIndex}">
+                    <div class="question">Câu ${qIndex + 1}: ${question.q}</div>
+                    <div class="options">${optionsHtml}</div>
+                    <div class="explanation" id="explain-${qIndex}" style="display:none;">
+                        <b>Giải thích:</b> ${question.explain}
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    // Xử lý chọn đáp án
+    function selectOption(qIndex, oIndex) {
+        for(let i=0; i<currentQuestions[qIndex].options.length; i++) {
+            let el = document.getElementById(`opt-${qIndex}-${i}`);
+            if(el) el.classList.remove('selected');
+        }
+        document.getElementById(`opt-${qIndex}-${oIndex}`).classList.add('selected');
+        userAnswers[qIndex] = oIndex;
+    }
+
+    // Nộp bài
+    function submitQuiz() {
+        if (userAnswers.includes(null)) {
+            let confirmSubmit = confirm("Cậu vẫn chưa làm hết tất cả các câu. Có chắc chắn muốn nộp bài luôn không?");
+            if (!confirmSubmit) return;
+        }
+
+        let score = 0;
+        currentQuestions.forEach((question, qIndex) => {
+            let uAns = userAnswers[qIndex];
+            let cAns = question.answer;
+            
+            for(let i=0; i<question.options.length; i++) {
+                let optEl = document.getElementById(`opt-${qIndex}-${i}`);
+                if(optEl) {
+                    optEl.onclick = null;
+                    optEl.style.cursor = "default";
+                }
+            }
+            
+            document.getElementById(`explain-${qIndex}`).style.display = "block";
+
+            if (uAns === cAns) {
+                score++;
+                document.getElementById(`opt-${qIndex}-${cAns}`).classList.add("correct-ans");
+            } else {
+                if(uAns !== null) {
+                    document.getElementById(`opt-${qIndex}-${uAns}`).classList.add("wrong-ans");
+                }
+                document.getElementById(`opt-${qIndex}-${cAns}`).classList.add("correct-ans");
+            }
+        });
+
+        const resultBoard = document.getElementById('result-board');
+        resultBoard.style.display = "block";
+        resultBoard.innerHTML = `
+            Kết quả của cậu:
+            <div class="score-text">${score} / ${currentQuestions.length}</div>
+            Hãy xem lại những câu sai và đọc giải thích để nhớ lâu hơn nhé!
+        `;
+        
+        document.getElementById('btn-submit').style.display = "none";
+        document.getElementById('btn-retry').style.display = "block";
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
+
+    // Toggle Dark Mode
+    function toggleTheme() {
+        const body = document.body;
+        const btn = document.getElementById('theme-toggle');
+        
+        if (body.getAttribute('data-theme') === 'light') {
+            body.setAttribute('data-theme', 'dark');
+            btn.innerHTML = '☀️ Chế độ Sáng';
+        } else {
+            body.setAttribute('data-theme', 'light');
+            btn.innerHTML = '🌙 Chế độ Tối';
+        }
+    }
+
+    // Chạy app
+    initApp();
+</script>
+</body>
+</html>
