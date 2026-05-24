@@ -168,7 +168,22 @@
         .question {
             font-size: 1.15em;
             font-weight: 600;
-            margin-bottom: 15px;
+            margin-bottom: 8px;
+        }
+
+        .question-status {
+            font-size: 0.95em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: none;
+        }
+
+        .question-status.correct {
+            color: var(--success);
+        }
+
+        .question-status.wrong {
+            color: var(--danger);
         }
 
         .options {
@@ -869,6 +884,7 @@
                 quizBody.innerHTML += `
                 <div class="question-block" id="question-${qIndex}">
                     <div class="question">Câu ${qIndex + 1}: ${question.q}</div>
+                    <div class="question-status" id="status-${qIndex}"></div>
                     <div class="options">${optionsHtml}</div>
                     <div class="explanation" id="explain-${qIndex}" style="display:none;">
                         <b>Giải thích:</b> ${question.explain}
@@ -924,16 +940,27 @@
                     }
                 }
 
+                const statusEl = document.getElementById(`status-${qIndex}`);
                 document.getElementById(`explain-${qIndex}`).style.display = "block";
 
                 if (uAns === cAns) {
                     score++;
                     document.getElementById(`opt-${qIndex}-${cAns}`).classList.add("correct-ans");
+                    if (statusEl) {
+                        statusEl.innerText = "Đúng ✅";
+                        statusEl.classList.add('correct');
+                        statusEl.style.display = 'block';
+                    }
                 } else {
                     if (uAns !== null) {
                         document.getElementById(`opt-${qIndex}-${uAns}`).classList.add("wrong-ans");
                     }
                     document.getElementById(`opt-${qIndex}-${cAns}`).classList.add("correct-ans");
+                    if (statusEl) {
+                        statusEl.innerText = "Sai ❌";
+                        statusEl.classList.add('wrong');
+                        statusEl.style.display = 'block';
+                    }
                 }
             });
 
