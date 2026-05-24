@@ -774,6 +774,8 @@
         let currentQuestions = [];
         let userAnswers = [];
         let currentTestNum = 1;
+        let quizSubmitted = false;
+        const SESSION_KEY = 'nlktQuizSession';
 
         // Biến cho đồng hồ đếm ngược
         let timerInterval = null;
@@ -782,21 +784,92 @@
         // Khởi tạo Quiz khi mở web
         function initApp() {
             document.body.setAttribute('data-theme', 'light');
-            changeTest();
+            if (!restoreSession()) {
+                changeTest();
+            }
+        }
+
+        function saveSession() {
+            localStorage.setItem(SESSION_KEY, JSON.stringify({
+                currentTestNum,
+                currentQuestions,
+                userAnswers,
+                timeRemaining,
+                quizSubmitted
+            }));
+        }
+
+        function clearSession() {
+            localStorage.removeItem(SESSION_KEY);
+        }
+
+        function restoreSession() {
+            try {
+                const savedSession = JSON.parse(localStorage.getItem(SESSION_KEY));
+                if (!savedSession || !Array.isArray(savedSession.currentQuestions) || !Array.isArray(savedSession.userAnswers)) {
+                    return false;
+                }
+
+                currentTestNum = parseInt(savedSession.currentTestNum) || 1;
+                currentQuestions = savedSession.currentQuestions;
+                userAnswers = savedSession.userAnswers;
+                timeRemaining = Number.isFinite(savedSession.timeRemaining) ? savedSession.timeRemaining : 3600;
+                quizSubmitted = !!savedSession.quizSubmitted;
+
+                document.getElementById('test-selector').value = currentTestNum;
+                document.getElementById('quiz-title').innerText = `Đề Luyện Tập Số ${currentTestNum}`;
+                renderQuiz();
+                restoreAnswerUI();
+                updateTimerUI();
+
+                if (quizSubmitted || timeRemaining <= 0) {
+                    submitQuiz(true);
+                } else {
+                    resumeTimer();
+                }
+
+                return true;
+            } catch (error) {
+                clearSession();
+                return false;
+            }
+        }
+
+        function resumeTimer() {
+            clearInterval(timerInterval);
+            updateTimerUI();
+
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                saveSession();
+                updateTimerUI();
+
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    timeRemaining = 0;
+                    saveSession();
+                    alert("Đã hết 60 phút làm bài! Hệ thống sẽ tự động nộp bài của cậu nhé.");
+                    submitQuiz(); // Auto submit
+                }
+            }, 1000);
         }
 
         // Logic Đồng hồ
         function startTimer() {
             clearInterval(timerInterval);
             timeRemaining = 3600;
+            saveSession();
             updateTimerUI();
 
             timerInterval = setInterval(() => {
                 timeRemaining--;
+                saveSession();
                 updateTimerUI();
 
                 if (timeRemaining <= 0) {
                     clearInterval(timerInterval);
+                    timeRemaining = 0;
+                    saveSession();
                     alert("⏰ Đã hết 60 phút làm bài! Hệ thống sẽ tự động nộp bài của cậu nhé.");
                     submitQuiz(); // Auto submit
                 }
@@ -845,6 +918,7 @@
 
         function resetQuizState() {
             userAnswers = new Array(currentQuestions.length).fill(null);
+            quizSubmitted = false;
             renderQuiz();
             document.getElementById('result-board').style.display = "none";
             document.getElementById('btn-submit').style.display = "block";
@@ -854,7 +928,9 @@
         }
 
         function resetCurrentTest() {
+            if (!quizSubmitted) return;
             userAnswers = new Array(currentQuestions.length).fill(null);
+            quizSubmitted = false;
             renderQuiz();
             document.getElementById('result-board').style.display = "none";
             document.getElementById('btn-submit').style.display = "block";
@@ -894,8 +970,17 @@
             });
         }
 
+        function restoreAnswerUI() {
+            userAnswers.forEach((answer, qIndex) => {
+                if (answer !== null && answer !== undefined) {
+                    const selectedOption = document.getElementById(`opt-${qIndex}-${answer}`);
+                    if (selectedOption) selectedOption.classList.add('selected');
+                }
+            });
+        }
+
         function selectOption(qIndex, oIndex) {
-            if (timeRemaining <= 0) return; // Hết giờ không cho click nữa
+            if (timeRemaining <= 0 || quizSubmitted) return;
 
             for (let i = 0; i < currentQuestions[qIndex].options.length; i++) {
                 let el = document.getElementById(`opt-${qIndex}-${i}`);
@@ -903,29 +988,24 @@
             }
             document.getElementById(`opt-${qIndex}-${oIndex}`).classList.add('selected');
             userAnswers[qIndex] = oIndex;
+            saveSession();
         }
 
-        function submitQuiz() {
+        function submitQuiz(skipScroll = false) {
             // Dừng đồng hồ
             clearInterval(timerInterval);
 
             // Kiểm tra nếu chưa chọn hết và chưa hết giờ thì cảnh báo
-            if (timeRemaining > 0 && userAnswers.includes(null)) {
+            if (!quizSubmitted && timeRemaining > 0 && userAnswers.includes(null)) {
                 let confirmSubmit = confirm("Cậu vẫn chưa làm hết bài. Có chắc chắn muốn nộp bài luôn không?");
                 if (!confirmSubmit) {
-                    // Tiếp tục chạy đồng hồ
-                    timerInterval = setInterval(() => {
-                        timeRemaining--;
-                        updateTimerUI();
-                        if (timeRemaining <= 0) {
-                            clearInterval(timerInterval);
-                            alert("⏰ Đã hết 60 phút làm bài! Hệ thống sẽ tự động nộp bài.");
-                            submitQuiz();
-                        }
-                    }, 1000);
+                    resumeTimer();
                     return;
                 }
             }
+
+            quizSubmitted = true;
+            saveSession();
 
             let score = 0;
             currentQuestions.forEach((question, qIndex) => {
@@ -975,7 +1055,9 @@
 
             document.getElementById('btn-submit').style.display = "none";
             document.getElementById('btn-retry').style.display = "block";
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            if (!skipScroll) {
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            }
         }
 
         function toggleTheme() {
